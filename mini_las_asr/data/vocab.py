@@ -84,17 +84,40 @@ class CharVocab:
         #   3. 建立 char2id / id2char 两个方向的映射
         self.char2id: Dict[str, int] = {}
         self.id2char: Dict[int, str] = {}
-        self.pad_id: int = 0
-        self.sos_id: int = 0
-        self.eos_id: int = 0
-        self.unk_id: int = 0
 
-        # TODO: 填充映射表
-        # 建议你在实现时打印出：
-        #   - 词表大小
-        #   - 前几个 token 及其 id
-        # 帮助你理解后续张量中每个 int 对应的字符。
-        pass
+        # 固定特殊 token id
+        self.pad_id = 0
+        self.sos_id = 1
+        self.eos_id = 2
+        self.unk_id = 3
+
+        # 填充特殊 token 映射
+        self.char2id[pad_token] = self.pad_id
+        self.char2id[sos_token] = self.sos_id
+        self.char2id[eos_token] = self.eos_id
+        self.char2id[unk_token] = self.unk_id
+
+        self.id2char[self.pad_id] = pad_token
+        self.id2char[self.sos_id] = sos_token
+        self.id2char[self.eos_id] = eos_token
+        self.id2char[self.unk_id] = unk_token
+
+        # 再把普通字符按传入顺序追加进去（从 4 开始）
+        next_id = 4
+        for ch in chars:
+            if ch in self.char2id:
+                continue
+            self.char2id[ch] = next_id
+            self.id2char[next_id] = ch
+            next_id += 1
+
+    def summary(self):
+        print(f"Char2ID: {self.char2id}")
+        print(f"ID2Char: {self.id2char}")
+        print(f"Pad ID: {self.pad_id}")
+        print(f"SOS ID: {self.sos_id}")
+        print(f"EOS ID: {self.eos_id}")
+        print(f"UNK ID: {self.unk_id}")
 
     def text_to_ids(self, text: str) -> List[int]:
         """
@@ -132,12 +155,22 @@ class CharVocab:
                   (tgt_len,) -> 拼成 (B, max_tgt_len)
             - 解码器在训练阶段会直接使用这个 batch 张量作为目标序列。
         """
-        # TODO: 实现字符串到 id 序列的转换逻辑
-        # 典型流程：
-        #   1. 可选的预处理（lowercase、去掉多余空格）
-        #   2. 对每个字符查 self.char2id，查不到的用 unk_id
-        #   3. 可选：前后加 sos_id 和 eos_id
-        pass
+        if text is None:
+            text = ""
+        if not isinstance(text, str):
+            text = str(text)
+
+        # 1) 可选预处理：统一小写 + 压缩空白
+        text = text.lower().strip()
+        text = " ".join(text.split())
+
+        # 2) 字符映射：未知字符 -> unk_id
+        ids = [self.char2id.get(ch, self.unk_id) for ch in text]
+
+        # 3) 为训练目标追加 eos_id（用于学习何时停止）
+        ids.append(self.eos_id)
+        return ids
+
 
     def ids_to_text(self, ids: List[int]) -> str:
         """
@@ -175,11 +208,27 @@ class CharVocab:
                   ref_texts, hyp_texts -> compute_cer
             - visualize.py 在画 attention 图时，可能会把 text 的字符标在 y 轴上。
         """
-        # TODO: 实现 id 序列到字符串的转换逻辑
-        # 典型流程：
-        #   1. 遍历 ids，把 pad_id / sos_id / eos_id 过滤掉（或在遇到 eos_id 时停止）
-        #   2. 用 self.id2char 把 id 转成字符
-        #   3. 拼接成字符串
-        pass
+        # 兼容 torch.Tensor 输入（用 duck-typing 避免显式依赖 torch 导致静态检查告警）
+        try:
+            if hasattr(ids, "detach") and hasattr(ids, "cpu") and hasattr(ids, "tolist"):
+                ids = ids.detach().cpu().tolist()
+        except Exception:
+            pass
+
+        out_chars: List[str] = []
+        for idx in ids:
+            idx_int = int(idx)
+
+            # 遇到结束符停止
+            if idx_int == self.eos_id:
+                break
+
+            # 跳过 padding / 起始符
+            if idx_int in (self.pad_id, self.sos_id):
+                continue
+
+            out_chars.append(self.id2char.get(idx_int, self.id2char.get(self.unk_id, "")))
+
+        return "".join(out_chars)
 
 

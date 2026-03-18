@@ -5,7 +5,7 @@
 
 ---
 
-## Step 1：配置与词表（最简单，无深度学习）
+<details><summary>Step 1：配置与词表（最简单，无深度学习）</summary>
 
 ### Step 1.1：`config/config.py`（Config）
 
@@ -58,7 +58,9 @@
 
 ---
 
-## Step 2：音频与特征（从 wav 到 log-Mel）
+</details>
+
+<details><summary>Step 2：音频与特征（从 wav 到 log-Mel）</summary>
 
 ### Step 2.1：`data/audio_utils.py`
 
@@ -89,7 +91,9 @@
 
 ---
 
-## Step 3：Dataset 与 Collate（从单样本到 batch）
+</details>
+
+<details><summary>Step 3：Dataset 与 Collate（从单样本到 batch）</summary>
 
 ### Step 3.1：`data/dataset.py`（LJSpeechDataset）
 
@@ -150,7 +154,9 @@
 
 ---
 
-## Step 4：Encoder & Attention（表征 + 对齐的核心）
+</details>
+
+<details><summary>Step 4：Encoder & Attention（表征 + 对齐的核心）</summary>
 
 ### Step 4.1：`models/encoder.py`（BiLSTM Encoder）
 
@@ -217,7 +223,9 @@
 
 ---
 
-## Step 5：Decoder & LASModel（完整前向）
+</details>
+
+<details><summary>Step 5：Decoder & LASModel（完整前向）</summary>
 
 ### Step 5.1：`models/decoder.py`（先实现 forward_step）
 
@@ -274,7 +282,9 @@
 
 ---
 
-## Step 6：训练、推理、评估与可视化
+</details>
+
+<details><summary>Step 6：训练、推理、评估与可视化</summary>
 
 ### Step 6.1：`training/train.py`（train_one_epoch, validate）
 
@@ -337,7 +347,9 @@
 
 ---
 
-## Step 7：`main.py`（项目入口）
+</details>
+
+<details><summary>Step 7：`main.py`（项目入口）</summary>
 
 - **要完成什么**
   - 写一个简单的 `main()`：
@@ -348,5 +360,8 @@
 - **怎么测试**
   - 一开始可以只支持 `mode="train"`，确认能跑训练循环；
   - 后面再逐步加 `decode`、`visualize` 模式。
+
+
+</details>
 
 

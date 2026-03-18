@@ -10,3 +10,4 @@ venv/
 env/
 *.swp
 .ipynb_checkpoints/
+data/
